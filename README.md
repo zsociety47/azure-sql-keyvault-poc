@@ -8,10 +8,10 @@ The walkthrough video is added here after it is recorded, with a GIF thumbnail t
 
 ## At a glance
 
-- **What it is:** a web server on Microsoft Azure that connects to a managed SQL database without the database password ever appearing in code, on disk, or in a config file.
-- **What's automated:** one Python command builds the vault, the database, and the server. A second command checks the result. A third deletes it and frees the vault name.
-- **Why it's secure:** the password lives only in Azure Key Vault. The server proves who it is with a managed identity, so it has no password of its own to leak. Its role can read secrets and cannot change them.
-- **Why it's managed:** Azure SQL Database is Platform as a Service (PaaS). Microsoft patches, backs up, and runs the database engine. There is no database virtual machine (VM) to maintain.
+- **What it is:** an application virtual machine (VM) that talks to Azure SQL Database without the database password ever appearing in code, on disk, or in a config file. There is no public website. The VM is the app, not a page for visitors.
+- **What's automated:** one Python command builds the vault, the database, and the VM. It talks to Azure's API, not Secure Shell (SSH). A second command checks the result. A third deletes it and frees the vault name.
+- **Two identities:** the operator (your laptop) is Key Vault Administrator and may write the secret. The VM is Key Vault Secrets User and may only read it. SSH on port 22 is an optional admin door after the build, not how resources are created.
+- **Why it's managed:** Azure SQL Database is Platform as a Service (PaaS). Microsoft patches, backs up, and runs the database engine. There is no database VM to maintain.
 - **Result:** checks 1 through 6 passed on `python -m src.verify`. Check 7 waits for teardown. Evidence is under [Success criteria](#success-criteria).
 
 Part of [Cloud Projects](https://github.com/zsociety47/cloud-projects). Technical details and lessons learned are in [Technical findings](#technical-findings) at the bottom.
@@ -380,10 +380,12 @@ flowchart TD
 
 **How to read this diagram**
 
-- **Solid arrows:** live traffic. SSH lands on `pip-web-01`, then `nsg-web` allows port 22 from the operator address only. There is no port 80. The public IP is drawn at the top of the VNet because it is attached to the VM's network interface. From the VM, one line is SQL, two lines are Key Vault (read allowed, write denied with 403), and one line is the Instance Metadata Service (IMDS) token for the VM's Entra ID identity.
-- **The lower box** is what the VM reaches over the public internet: SQL, Key Vault, and the identity. Those are not subnet addresses.
+This picture is **run time**, after the build exists. It is not the deploy.
+
+- **Build (not drawn):** `python -m src.deploy` uses the Azure API from the laptop. HTTPS to Azure Resource Manager. It does not use SSH. It creates the vault and SQL first, then the public IP, NSG, VNet, and VM.
+- **Top box, operator path:** optional admin access later. SSH lands on `pip-web-01`, then `nsg-web` allows port 22 from the operator address only. There is no port 80. Skip this path and the app still works. Verify uses Run Command, not SSH.
+- **Lower box, the proof:** the VM asks Instance Metadata Service (IMDS) for a token, reads `SqlAdminPassword` over HTTPS, opens SQL over Tabular Data Stream (TDS) inside Transport Layer Security (TLS), and is refused with 403 if it tries to write a secret. SQL and Key Vault are not in the VNet.
 - **Blue:** Azure resources. **Green:** identity, the vault, and the NSG. **Gray:** the laptop.
-- Python deploy is not drawn as an arrow.
 
 *The password never leaves Key Vault into this repository or onto the VM's disk. SQL is in Central US because this subscription cannot create a server in East US.*
 
