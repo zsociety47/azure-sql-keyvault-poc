@@ -342,28 +342,27 @@ After teardown, `python -m src.verify --after-teardown` checks only row 7.
 ## Architecture
 
 ```mermaid
-%%{init: {"flowchart": {"useMaxWidth": false, "nodeSpacing": 50, "rankSpacing": 70}}}%%
+%%{init: {"flowchart": {"useMaxWidth": false, "nodeSpacing": 80, "rankSpacing": 80, "curve": "linear"}}}%%
 flowchart TD
     operator["Operator laptop"]
 
-    subgraph tenant["Microsoft Entra ID tenant"]
-        subgraph rg["rg-paas-poc-zeon01"]
-            pip["pip-web-01<br/>Public IP"]
-            subgraph vnet["vnet-paas-poc · East US"]
-                vmweb["vm-web-01"]
-            end
-            kv["kv-paas-zeon01<br/>Key Vault · East US"]
-            sqldb["sql-paas-zeon01 / sqldb-app<br/>Azure SQL · Central US"]
-        end
+    subgraph rg["rg-paas-poc-zeon01"]
+        pip["pip-web-01<br/>Public IP"]
+        vmweb["vm-web-01<br/>vnet-paas-poc · East US"]
+        sqldb["sql-paas-zeon01 / sqldb-app<br/>Azure SQL · Central US"]
+        kv["kv-paas-zeon01<br/>Key Vault · East US"]
         ident["vm-web-01 identity<br/>Secrets User"]
     end
 
     operator -- "SSH 22" --> pip
     pip -- "SSH 22" --> vmweb
-    vmweb -- "IMDS token" --> ident
+    vmweb -- "TDS 1433 · TLS" --> sqldb
     vmweb -- "HTTPS 443 · read secret" --> kv
     vmweb -- "write secret · 403 denied" --> kv
-    vmweb -- "TDS 1433 · TLS" --> sqldb
+    vmweb -- "IMDS token" --> ident
+
+    sqldb ~~~ kv
+    kv ~~~ ident
 
     classDef azure fill:#0078d4,stroke:#005a9e,color:#fff
     classDef external fill:#6e7681,stroke:#484f58,color:#fff
@@ -376,9 +375,9 @@ flowchart TD
 
 **How to read this diagram**
 
-- **Solid arrows:** live traffic only. SSH lands on `pip-web-01`, then on the VM. The VM asks Instance Metadata Service (IMDS) for a token from its Entra ID identity, reads `SqlAdminPassword` over HTTPS, and opens SQL over Tabular Data Stream (TDS) inside Transport Layer Security (TLS). The second Key Vault arrow is a write Key Vault denies with 403.
+- **Solid arrows:** live traffic. SSH lands on `pip-web-01`, then on the VM. From the VM, one line is SQL, two lines are Key Vault (read allowed, write denied with 403), and one line is the Instance Metadata Service (IMDS) token for the VM's Entra ID identity.
 - **Blue:** Azure resources. **Green:** identity and the vault. **Gray:** the laptop.
-- Every arrow ends on a resource, not on a box around a group. Python deploy creates these resources and is not drawn as an arrow.
+- Nested tenant and VNet boxes were dropped so Mermaid can keep those four targets on one row and attach each arrow to a node. The VNet name is on the VM. Python deploy is not drawn as an arrow.
 
 *The password never leaves Key Vault into this repository or onto the VM's disk. SQL is in Central US because this subscription cannot create a server in East US.*
 
