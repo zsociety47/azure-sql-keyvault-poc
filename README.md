@@ -342,48 +342,42 @@ After teardown, `python -m src.verify --after-teardown` checks only row 7.
 ## Architecture
 
 ```mermaid
-flowchart TD
-    deploy["python -m src.deploy"]
+flowchart LR
     operator["Operator laptop"]
 
     subgraph tenant["Microsoft Entra ID tenant"]
         ident["vm-web-01 identity<br/>System-assigned · Secrets User"]
         subgraph rg["rg-paas-poc-zeon01"]
-            pip["pip-web-01<br/>Public IP · East US"]
-            subgraph vnet["vnet-paas-poc · 10.1.0.0/16 · East US"]
-                subgraph web["snet-web · nsg-web"]
-                    vmweb["vm-web-01"]
-                end
+            pip["pip-web-01<br/>Public IP"]
+            subgraph vnet["vnet-paas-poc · East US"]
+                vmweb["vm-web-01"]
             end
             kv["kv-paas-zeon01<br/>Key Vault · East US"]
-            sqldb["sql-paas-zeon01 / sqldb-app<br/>Azure SQL Database · Central US"]
+            sqldb["sql-paas-zeon01 / sqldb-app<br/>Azure SQL · Central US"]
         end
     end
 
     operator -- "SSH 22" --> pip
     pip -- "SSH 22" --> vmweb
     vmweb -- "IMDS token" --> ident
-    vmweb -- "HTTPS 443 · read SqlAdminPassword" --> kv
-    vmweb -- "TDS 1433 · TLS" --> sqldb
+    vmweb -- "HTTPS 443 · read secret" --> kv
     vmweb -- "write secret · 403 denied" --> kv
-    deploy -. "create or update" .-> pip
-    deploy -. "create or update" .-> kv
-    deploy -. "create or update" .-> sqldb
+    vmweb -- "TDS 1433 · TLS" --> sqldb
 
     classDef azure fill:#0078d4,stroke:#005a9e,color:#fff
     classDef external fill:#6e7681,stroke:#484f58,color:#fff
     classDef identity fill:#107c10,stroke:#0b5a0b,color:#fff
 
     class pip,vmweb,sqldb azure
-    class operator,deploy external
+    class operator external
     class ident,kv identity
 ```
 
 **How to read this diagram**
 
-- **Solid arrows:** traffic while the system runs. SSH lands on `pip-web-01`, then on the VM. The VM asks Instance Metadata Service (IMDS) for a token, reads the secret over HTTPS, and opens SQL over Tabular Data Stream (TDS) inside Transport Layer Security (TLS). The write arrow is a call Key Vault denies.
-- **Dashed arrows:** `python -m src.deploy` creating those resources. They point at nodes, not at the resource-group box.
-- **Blue:** Azure resources. **Green:** identity and the vault. **Gray:** the laptop and the deploy command.
+- **Solid arrows:** live traffic only. SSH lands on `pip-web-01`, then on the VM. The VM asks Instance Metadata Service (IMDS) for a token from its Entra ID identity, reads `SqlAdminPassword` over HTTPS, and opens SQL over Tabular Data Stream (TDS) inside Transport Layer Security (TLS). The second Key Vault arrow is a write Key Vault denies with 403.
+- **Blue:** Azure resources. **Green:** identity and the vault. **Gray:** the laptop.
+- Python deploy creates these resources. It is not drawn as an arrow, so those lines do not wrap around the boxes.
 
 *The password never leaves Key Vault into this repository or onto the VM's disk. SQL is in Central US because this subscription cannot create a server in East US.*
 
