@@ -343,41 +343,49 @@ After teardown, `python -m src.verify --after-teardown` checks only row 7.
 
 ```mermaid
 flowchart TD
-    operator["Operator laptop<br/>Python deploy · SSH"]
+    deploy["python -m src.deploy"]
+    operator["Operator laptop"]
 
-    subgraph rg["rg-paas-poc-zeon01"]
-        subgraph vnet["vnet-paas-poc · 10.1.0.0/16"]
-            subgraph web["snet-web · nsg-web"]
-                vmweb["vm-web-01 · pip-web-01<br/>Ubuntu VM · system-assigned identity"]
+    subgraph tenant["Microsoft Entra ID tenant"]
+        ident["vm-web-01 identity<br/>System-assigned · Secrets User"]
+        subgraph rg["rg-paas-poc-zeon01"]
+            pip["pip-web-01<br/>Public IP · East US"]
+            subgraph vnet["vnet-paas-poc · 10.1.0.0/16 · East US"]
+                subgraph web["snet-web · nsg-web"]
+                    vmweb["vm-web-01"]
+                end
             end
-        end
-        kv["kv-paas-zeon01<br/>Key Vault · SqlAdminPassword"]
-        subgraph sqlsrv["sql-paas-zeon01 · SQL server · firewall"]
-            sqldb["sqldb-app<br/>Azure SQL Database · Basic"]
+            kv["kv-paas-zeon01<br/>Key Vault · East US"]
+            sqldb["sql-paas-zeon01 / sqldb-app<br/>Azure SQL Database · Central US"]
         end
     end
 
-    operator -- "SSH port 22 · operator address only" --> vmweb
-    vmweb -- "HTTPS 443 · managed identity token · Secrets User" --> kv
-    vmweb -- "TDS 1433 · TLS · sqladmin" --> sqldb
-    operator -. "create or update" .-> rg
+    operator -- "SSH 22" --> pip
+    pip -- "SSH 22" --> vmweb
+    vmweb -- "IMDS token" --> ident
+    vmweb -- "HTTPS 443 · read SqlAdminPassword" --> kv
+    vmweb -- "TDS 1433 · TLS" --> sqldb
+    vmweb -- "write secret · 403 denied" --> kv
+    deploy -. "create or update" .-> pip
+    deploy -. "create or update" .-> kv
+    deploy -. "create or update" .-> sqldb
 
     classDef azure fill:#0078d4,stroke:#005a9e,color:#fff
     classDef external fill:#6e7681,stroke:#484f58,color:#fff
     classDef identity fill:#107c10,stroke:#0b5a0b,color:#fff
 
-    class vmweb,sqldb azure
-    class operator external
-    class kv identity
+    class pip,vmweb,sqldb azure
+    class operator,deploy external
+    class ident,kv identity
 ```
 
 **How to read this diagram**
 
-- **Solid arrows:** traffic while the system runs. HTTPS is Hypertext Transfer Protocol Secure. TDS is Tabular Data Stream, the SQL Server wire protocol, inside TLS.
-- **Dashed arrow:** how the Python deploy creates and updates the resource group.
-- **Blue:** Azure resources. **Green:** where the secret and the access rules live. **Gray:** the laptop running the deploy.
+- **Solid arrows:** traffic while the system runs. SSH lands on `pip-web-01`, then on the VM. The VM asks Instance Metadata Service (IMDS) for a token, reads the secret over HTTPS, and opens SQL over Tabular Data Stream (TDS) inside Transport Layer Security (TLS). The write arrow is a call Key Vault denies.
+- **Dashed arrows:** `python -m src.deploy` creating those resources. They point at nodes, not at the resource-group box.
+- **Blue:** Azure resources. **Green:** identity and the vault. **Gray:** the laptop and the deploy command.
 
-*The VM gets a token for its own identity, reads the password from Key Vault, and logs in to the managed database. The password is never in this repository or on the VM's disk.*
+*The password never leaves Key Vault into this repository or onto the VM's disk. SQL is in Central US because this subscription cannot create a server in East US.*
 
 *Diagram follows the [shared diagram standard](https://github.com/zsociety47/cloud-projects/blob/main/standards/DIAGRAM-STANDARD.md).*
 
