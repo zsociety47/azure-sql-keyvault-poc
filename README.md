@@ -342,16 +342,17 @@ After teardown, `python -m src.verify --after-teardown` checks only row 7.
 ## Architecture
 
 ```mermaid
-%%{init: {"flowchart": {"useMaxWidth": false, "nodeSpacing": 80, "rankSpacing": 80, "curve": "linear"}}}%%
+%%{init: {"flowchart": {"useMaxWidth": false, "nodeSpacing": 70, "rankSpacing": 70, "curve": "linear"}}}%%
 flowchart TD
     operator["Operator laptop"]
 
-    subgraph rg["rg-paas-poc-zeon01"]
+    subgraph vnet["vnet-paas-poc · snet-web · 10.1.0.0/16 · East US"]
         pip["pip-web-01<br/>Public IP"]
-        subgraph vnet["vnet-paas-poc · snet-web · 10.1.0.0/16 · East US"]
-            nsg["nsg-web<br/>SSH 22 · operator /32"]
-            vmweb["vm-web-01"]
-        end
+        nsg["nsg-web<br/>SSH 22 · operator /32"]
+        vmweb["vm-web-01"]
+    end
+
+    subgraph outside["Outside the VNet · rg-paas-poc-zeon01"]
         sqldb["sql-paas-zeon01 / sqldb-app<br/>Azure SQL · Central US"]
         kv["kv-paas-zeon01<br/>Key Vault · East US"]
         ident["vm-web-01 identity<br/>Secrets User"]
@@ -379,7 +380,8 @@ flowchart TD
 
 **How to read this diagram**
 
-- **Solid arrows:** live traffic. SSH lands on `pip-web-01` outside the virtual network (VNet), then `nsg-web` allows port 22 from the operator address only. There is no port 80. From the VM inside `vnet-paas-poc`, one line is SQL, two lines are Key Vault (read allowed, write denied with 403), and one line is the Instance Metadata Service (IMDS) token for the VM's Entra ID identity. Key Vault and SQL sit outside the VNet; the VM reaches them over the public internet.
+- **Solid arrows:** live traffic. SSH lands on `pip-web-01`, then `nsg-web` allows port 22 from the operator address only. There is no port 80. The public IP is drawn at the top of the VNet because it is attached to the VM's network interface. From the VM, one line is SQL, two lines are Key Vault (read allowed, write denied with 403), and one line is the Instance Metadata Service (IMDS) token for the VM's Entra ID identity.
+- **The lower box** is what the VM reaches over the public internet: SQL, Key Vault, and the identity. Those are not subnet addresses.
 - **Blue:** Azure resources. **Green:** identity, the vault, and the NSG. **Gray:** the laptop.
 - Python deploy is not drawn as an arrow.
 
