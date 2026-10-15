@@ -342,11 +342,11 @@ After teardown, `python -m src.verify --after-teardown` checks only row 7.
 ## Architecture
 
 ```mermaid
-flowchart LR
+%%{init: {"flowchart": {"useMaxWidth": false, "nodeSpacing": 50, "rankSpacing": 70}}}%%
+flowchart TD
     operator["Operator laptop"]
 
     subgraph tenant["Microsoft Entra ID tenant"]
-        ident["vm-web-01 identity<br/>System-assigned · Secrets User"]
         subgraph rg["rg-paas-poc-zeon01"]
             pip["pip-web-01<br/>Public IP"]
             subgraph vnet["vnet-paas-poc · East US"]
@@ -355,6 +355,7 @@ flowchart LR
             kv["kv-paas-zeon01<br/>Key Vault · East US"]
             sqldb["sql-paas-zeon01 / sqldb-app<br/>Azure SQL · Central US"]
         end
+        ident["vm-web-01 identity<br/>Secrets User"]
     end
 
     operator -- "SSH 22" --> pip
@@ -377,7 +378,7 @@ flowchart LR
 
 - **Solid arrows:** live traffic only. SSH lands on `pip-web-01`, then on the VM. The VM asks Instance Metadata Service (IMDS) for a token from its Entra ID identity, reads `SqlAdminPassword` over HTTPS, and opens SQL over Tabular Data Stream (TDS) inside Transport Layer Security (TLS). The second Key Vault arrow is a write Key Vault denies with 403.
 - **Blue:** Azure resources. **Green:** identity and the vault. **Gray:** the laptop.
-- Python deploy creates these resources. It is not drawn as an arrow, so those lines do not wrap around the boxes.
+- Every arrow ends on a resource, not on a box around a group. Python deploy creates these resources and is not drawn as an arrow.
 
 *The password never leaves Key Vault into this repository or onto the VM's disk. SQL is in Central US because this subscription cannot create a server in East US.*
 
