@@ -348,6 +348,7 @@ flowchart TD
 
     subgraph rg["rg-paas-poc-zeon01"]
         pip["pip-web-01<br/>Public IP"]
+        nsg["nsg-web<br/>SSH 22 · operator /32"]
         vmweb["vm-web-01<br/>vnet-paas-poc · East US"]
         sqldb["sql-paas-zeon01 / sqldb-app<br/>Azure SQL · Central US"]
         kv["kv-paas-zeon01<br/>Key Vault · East US"]
@@ -355,7 +356,8 @@ flowchart TD
     end
 
     operator -- "SSH 22" --> pip
-    pip -- "SSH 22" --> vmweb
+    pip -- "SSH 22" --> nsg
+    nsg -- "allow" --> vmweb
     vmweb -- "TDS 1433 · TLS" --> sqldb
     vmweb -- "HTTPS 443 · read secret" --> kv
     vmweb -- "write secret · 403 denied" --> kv
@@ -370,12 +372,12 @@ flowchart TD
 
     class pip,vmweb,sqldb azure
     class operator external
-    class ident,kv identity
+    class ident,kv,nsg identity
 ```
 
 **How to read this diagram**
 
-- **Solid arrows:** live traffic. SSH lands on `pip-web-01`, then on the VM. From the VM, one line is SQL, two lines are Key Vault (read allowed, write denied with 403), and one line is the Instance Metadata Service (IMDS) token for the VM's Entra ID identity.
+- **Solid arrows:** live traffic. SSH lands on `pip-web-01`, then `nsg-web` allows port 22 from the operator address only. There is no port 80. From the VM, one line is SQL, two lines are Key Vault (read allowed, write denied with 403), and one line is the Instance Metadata Service (IMDS) token for the VM's Entra ID identity.
 - **Blue:** Azure resources. **Green:** identity and the vault. **Gray:** the laptop.
 - Nested tenant and VNet boxes were dropped so Mermaid can keep those four targets on one row and attach each arrow to a node. The VNet name is on the VM. Python deploy is not drawn as an arrow.
 
