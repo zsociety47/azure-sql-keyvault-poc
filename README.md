@@ -348,8 +348,10 @@ flowchart TD
 
     subgraph rg["rg-paas-poc-zeon01"]
         pip["pip-web-01<br/>Public IP"]
-        nsg["nsg-web<br/>SSH 22 · operator /32"]
-        vmweb["vm-web-01<br/>vnet-paas-poc · East US"]
+        subgraph vnet["vnet-paas-poc · snet-web · 10.1.0.0/16 · East US"]
+            nsg["nsg-web<br/>SSH 22 · operator /32"]
+            vmweb["vm-web-01"]
+        end
         sqldb["sql-paas-zeon01 / sqldb-app<br/>Azure SQL · Central US"]
         kv["kv-paas-zeon01<br/>Key Vault · East US"]
         ident["vm-web-01 identity<br/>Secrets User"]
@@ -377,9 +379,9 @@ flowchart TD
 
 **How to read this diagram**
 
-- **Solid arrows:** live traffic. SSH lands on `pip-web-01`, then `nsg-web` allows port 22 from the operator address only. There is no port 80. From the VM, one line is SQL, two lines are Key Vault (read allowed, write denied with 403), and one line is the Instance Metadata Service (IMDS) token for the VM's Entra ID identity.
-- **Blue:** Azure resources. **Green:** identity and the vault. **Gray:** the laptop.
-- Nested tenant and VNet boxes were dropped so Mermaid can keep those four targets on one row and attach each arrow to a node. The VNet name is on the VM. Python deploy is not drawn as an arrow.
+- **Solid arrows:** live traffic. SSH lands on `pip-web-01` outside the virtual network (VNet), then `nsg-web` allows port 22 from the operator address only. There is no port 80. From the VM inside `vnet-paas-poc`, one line is SQL, two lines are Key Vault (read allowed, write denied with 403), and one line is the Instance Metadata Service (IMDS) token for the VM's Entra ID identity. Key Vault and SQL sit outside the VNet; the VM reaches them over the public internet.
+- **Blue:** Azure resources. **Green:** identity, the vault, and the NSG. **Gray:** the laptop.
+- Python deploy is not drawn as an arrow.
 
 *The password never leaves Key Vault into this repository or onto the VM's disk. SQL is in Central US because this subscription cannot create a server in East US.*
 
