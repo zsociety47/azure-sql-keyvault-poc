@@ -2,7 +2,7 @@
 
 Four posts, one per weekday at **9:00 AM Eastern**. Friday is a rest day. Copy only the **Post** block into LinkedIn.
 
-Target week: **Mon Oct 26 through Thu Oct 29, 2026**. Post 1 cannot go out until the walkthrough video file exists. The recording is not in the repository yet. Slide the week if you record later.
+Week: **Mon Oct 26 through Thu Oct 29, 2026**. Monday is the walkthrough video.
 
 | # | File | Publish | Visual |
 |---|------|---------|--------|
@@ -13,4 +13,4 @@ Target week: **Mon Oct 26 through Thu Oct 29, 2026**. Post 1 cannot go out until
 
 Matching JPEGs belong next to these files in private `loom-notes/linkedin/03-sql-keyvault/` as `01-video.jpg`, `02-github.jpg`, `03-architecture.jpg`, and `04-tool.jpg`. When LinkedIn asks for a file, pick the JPEG with the same number as the markdown.
 
-Before post 1: record the walkthrough (face on camera for the introduction, the architecture, and the close), then upload the raw video file to LinkedIn. Do not paste a Loom link.
+Before post 1: download the video file from Loom and upload that file to LinkedIn. Do not paste a Loom link.

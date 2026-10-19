@@ -1,14 +1,14 @@
 # Post 1: Video
 
-**Publish:** Monday, October 26, 2026, 9:00 AM Eastern (slide if the recording is not ready)  
-**Type:** native LinkedIn video (upload the file; never paste a Loom URL)  
+**Publish:** Monday, October 26, 2026, 9:00 AM Eastern  
+**Type:** native LinkedIn video (download the file from Loom; never paste a Loom URL)  
 **Visual:** still frame of your face from the intro, Canva 1920×1080 PNG. Overlay: "Azure SQL. Password in Key Vault."
 
 ## This recording
 
-Not recorded yet. Hub status is [In progress](https://github.com/zsociety47/cloud-projects). Face on camera for the introduction, the architecture, and the close.
+Walkthrough of Managed SQL and Key Vault on Azure. Face on camera for the introduction, the architecture, and the close.
 
-Download the finished file and upload that file. Do not paste a Loom URL.
+Download the file from Loom and upload that file. Do not paste the Loom URL.
 
 ## Post
 
