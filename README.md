@@ -2,7 +2,9 @@
 
 ## 🎬 Watch the walkthrough
 
-The walkthrough video is added here after it is recorded, with a GIF thumbnail that opens the recording, the same way as the other projects. Face on camera for the introduction, the architecture, and the close.
+[![Watch the video](docs/images/loom-thumbnail.gif)](https://www.loom.com/share/326b50f1396142d9848704c6918908b5)
+
+Face on camera for the introduction, the architecture, and the close. Click the thumbnail to play.
 
 **Author:** Zeon Stewart, [LinkedIn](LINKEDIN_LINK_HERE)
 
