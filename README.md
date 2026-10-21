@@ -14,7 +14,7 @@ Face on camera for the introduction, the architecture, and the close. Click the 
 - **What's automated:** one Python command builds the vault, the database, and the VM. It talks to Azure's API, not Secure Shell (SSH). A second command checks the result. A third deletes it and frees the vault name.
 - **Two identities:** the operator (your laptop) is Key Vault Administrator and may write the secret. The VM is Key Vault Secrets User and may only read it. SSH on port 22 is an optional admin door after the build, not how resources are created.
 - **Why it's managed:** Azure SQL Database is Platform as a Service (PaaS). Microsoft patches, backs up, and runs the database engine. There is no database VM to maintain.
-- **Result:** checks 1 through 6 passed on `python -m src.verify`. Check 7 waits for teardown. Evidence is under [Success criteria](#success-criteria).
+- **Result:** checks 1 through 7 passed. Evidence is under [Success criteria](#success-criteria).
 
 Part of [Cloud Projects](https://github.com/zsociety47/cloud-projects). Technical details and lessons learned are in [Technical findings](#technical-findings) at the bottom.
 
@@ -28,7 +28,7 @@ Use East US for every resource except the SQL server and database, which go in C
 
 The names below are this build's. Key Vault and SQL server names are public hostnames, so they must be unique across Azure. If you change them, change them in `src/lib/config.py` and at the top of `src/guest/web-setup.sh` too.
 
-Portal labels move from time to time. If a button has moved, search for the setting name in the portal's top search bar. Each step below has a screenshot of what the portal should show when that step is done. The automated teardown picture stays commented out until that file exists.
+Portal labels move from time to time. If a button has moved, search for the setting name in the portal's top search bar. Each step below has a screenshot of what the portal should show when that step is done.
 
 ### Before the portal: the Secure Shell key, your address, and a password
 
@@ -301,7 +301,7 @@ python -m src.verify --after-teardown
 
 Teardown asks you to type `rg-paas-poc-zeon01`, deletes the group, then purges the soft-deleted vault.
 
-<!-- ![Teardown prompt, then check 7 PASS](docs/images/automated-teardown.png) -->
+![Teardown asked for the resource group name, then check 7 PASS](docs/images/automated-teardown.png)
 
 Sign in with the Azure command-line interface (CLI) in a browser before the Python commands:
 
@@ -409,7 +409,7 @@ A VM with a system-assigned managed identity can read a database password from K
 | 4 | The SQL firewall allows only the operator address and the web VM address | Verify lists the firewall rules | ✅ [verify](docs/images/automated-verify.png) |
 | 5 | Azure Monitor records the VM's successful login | Verify reads Successful Connections for the last hour | ✅ [verify](docs/images/automated-verify.png) |
 | 6 | The VM cannot write a secret: Key Vault returns 403 | Verify runs a write test on `vm-web-01` | ✅ [verify](docs/images/automated-verify.png) |
-| 7 | Teardown deletes the group and purges the vault | `python -m src.teardown`, then `python -m src.verify --after-teardown` | Pending |
+| 7 | Teardown deletes the group and purges the vault | `python -m src.teardown`, then `python -m src.verify --after-teardown` | ✅ [teardown](docs/images/automated-teardown.png) |
 
 ## What's in this repository
 
