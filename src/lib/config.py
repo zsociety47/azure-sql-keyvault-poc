@@ -8,6 +8,10 @@ Deploy generates it in memory, stores it in Key Vault, and does not print it.
 LOCATION = "eastus"
 RESOURCE_GROUP = "rg-paas-poc-zeon01"
 
+# Azure SQL capacity is restricted for this subscription in East US, East US 2,
+# North Central US, South Central US, and West US 2. Central US is the nearest
+# region that accepts a new server.
+SQL_LOCATION = "centralus"
 SQL_SERVER = "sql-paas-zeon01"
 SQL_DATABASE = "sqldb-app"
 SQL_ADMIN = "sqladmin"

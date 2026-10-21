@@ -158,7 +158,7 @@ def print_plan() -> None:
     info(f"Resource group: {config.RESOURCE_GROUP} ({config.LOCATION})")
     info(f"Key Vault: {config.KEY_VAULT}")
     info(f"Secret: {config.SECRET_NAME}")
-    info(f"SQL server: {config.SQL_FQDN}")
+    info(f"SQL server: {config.SQL_FQDN} ({config.SQL_LOCATION})")
     info(f"SQL database: {config.SQL_DATABASE} ({config.SQL_SKU_NAME}, {config.SQL_SKU_CAPACITY} DTU)")
     info(f"Network: {config.VNET_NAME} {config.VNET_PREFIX}, {config.WEB_SUBNET} {config.WEB_PREFIX}")
     info(f"VM: {config.VM_WEB} at {config.WEB_PRIVATE_IP}, size {config.VM_SIZE}")
@@ -225,7 +225,7 @@ def deploy(operator_ip: str) -> None:
             config.RESOURCE_GROUP,
             config.SQL_SERVER,
             Server(
-                location=config.LOCATION,
+                location=config.SQL_LOCATION,
                 tags=config.TAGS,
                 administrator_login=config.SQL_ADMIN,
                 administrator_login_password=password,
@@ -251,7 +251,7 @@ def deploy(operator_ip: str) -> None:
             config.SQL_SERVER,
             config.SQL_DATABASE,
             Database(
-                location=config.LOCATION,
+                location=config.SQL_LOCATION,
                 tags=config.TAGS,
                 sku=Sku(
                     name=config.SQL_SKU_NAME,

@@ -39,6 +39,7 @@ def as_text(value) -> str:
 def query_script() -> list[str]:
     """Ask the VM to read the secret and query SQL. The secret is not echoed."""
     return f"""
+#!/bin/bash
 set -euo pipefail
 token=$(curl -fsS --max-time 20 -H Metadata:true \
   "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net" \
@@ -66,6 +67,7 @@ rm -f /tmp/sql-out.txt /tmp/sql-err.txt
 def write_script() -> list[str]:
     """Ask the VM to write a secret. Only the HTTP status code comes back."""
     return f"""
+#!/bin/bash
 set -euo pipefail
 token=$(curl -fsS --max-time 20 -H Metadata:true \
   "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net" \
@@ -120,9 +122,13 @@ def firewall_allows_all_azure(rules) -> bool:
     return False
 
 
-def dtu_readable(monitor, resource_id: str) -> bool:
-    """True when Azure returns at least one DTU percentage point, including zero."""
-    for _ in range(6):
+def connections_recorded(monitor, resource_id: str) -> bool:
+    """True when Azure Monitor counts at least one successful login in the last hour.
+
+    Basic DTU databases do not publish dtu_consumption_percent, so the
+    connection count is the metric that shows the VM's login.
+    """
+    for _ in range(10):
         end = datetime.now(timezone.utc)
         start = end - timedelta(hours=1)
         timespan = f"{start.strftime('%Y-%m-%dT%H:%M:%SZ')}/{end.strftime('%Y-%m-%dT%H:%M:%SZ')}"
@@ -130,13 +136,13 @@ def dtu_readable(monitor, resource_id: str) -> bool:
             resource_id,
             timespan=timespan,
             interval="PT1M",
-            metricnames="dtu_consumption_percent",
-            aggregation="Maximum",
+            metricnames="connection_successful",
+            aggregation="Total",
         )
         for metric in response.value or []:
             for series in metric.timeseries or []:
                 for point in series.data or []:
-                    if point.maximum is not None:
+                    if point.total:
                         return True
         time.sleep(30)
     return False
@@ -237,15 +243,15 @@ def verify() -> None:
 
     query = command_result(azure.compute, query_script(), "SQL check")
     write_code = command_result(azure.compute, write_script(), "Write test")
-    info("DTU percentage can take a few minutes to appear.")
-    metric_ok = dtu_readable(azure.monitor, database.id)
+    info("Azure Monitor can take a few minutes to count the VM's login.")
+    metric_ok = connections_recorded(azure.monitor, database.id)
 
     rows = [
         ("1", "VM reads the secret and SQL answers", "PASS" if query == config.QUERY_MARKER else f"FAIL  {query}"),
         ("2", "Database is Basic, online, local backups", "PASS" if basic else "FAIL  tier, status, or backup redundancy"),
         ("3", "RBAC vault, purge protection off, VM can read", "PASS" if vault_ok else "FAIL  role, secret, or purge protection"),
         ("4", "SQL firewall allows this machine and the web VM", "PASS" if firewall_ok else "FAIL  expected addresses missing"),
-        ("5", "DTU percentage metric is readable", "PASS" if metric_ok else "FAIL  no datapoint yet"),
+        ("5", "Azure Monitor counted a successful SQL login", "PASS" if metric_ok else "FAIL  no successful connection in the last hour"),
         ("6", "VM is blocked from writing a secret (403)", "PASS" if write_code == "403" else f"FAIL  HTTP {write_code}"),
         ("7", "Teardown removed the group and purged the vault", "NOT RUN  python -m src.teardown, then --after-teardown"),
     ]
