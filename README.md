@@ -267,6 +267,10 @@ This database does not publish DTU percentage. Its metric list has CPU percentag
 
 ## Automated setup
 
+### Run this as yourself
+
+The names in `src/lib/config.py` are this proof of concept. Before you deploy, change `RESOURCE_GROUP`, `SQL_SERVER`, `KEY_VAULT`, and `TAGS["owner"]`. Key Vault and SQL server names must be unique across Azure, so they cannot stay as `zeon01`. Keep `src/guest/web-setup.sh` in step with those two names (the comment at the top of that file says the same thing).
+
 You need Python 3.11 or newer, an Azure subscription, and a current `az login`. The scripts sign in with `DefaultAzureCredential` from the Azure software development kit (SDK). No password is stored in the repository.
 
 From the repository root:

@@ -1,7 +1,8 @@
 #!/bin/bash
 # Read the SQL password from Key Vault with this VM's managed identity, then
 # query sqldb-app. The password is not in this file. Keep the names below in
-# step with src/lib/config.py.
+# step with src/lib/config.py. If you are not zeon, change kv-paas-zeon01
+# and sql-paas-zeon01 to the names you set in config.py.
 set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 

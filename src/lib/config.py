@@ -1,8 +1,11 @@
 """Names, addresses, and tags for the managed SQL and Key Vault proof of concept.
 
 Every Azure resource this project creates is listed here so deploy, verify,
-and teardown stay in agreement. The database password is not in this file.
-Deploy generates it in memory, stores it in Key Vault, and does not print it.
+and teardown stay in agreement. If you are not zeon, change RESOURCE_GROUP,
+SQL_SERVER, KEY_VAULT, and TAGS["owner"] before you deploy, and keep
+src/guest/web-setup.sh in step with the Key Vault and SQL names. The
+database password is not in this file. Deploy generates it in memory,
+stores it in Key Vault, and does not print it.
 """
 
 LOCATION = "eastus"
