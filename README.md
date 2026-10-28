@@ -10,10 +10,10 @@ Face on camera for the introduction, the architecture, and the close. Click the 
 
 ## At a glance
 
-- **What it is:** an application virtual machine (VM) that talks to Azure SQL Database without the database password ever appearing in code, on disk, or in a config file. There is no public website. The VM is the app, not a page for visitors.
+- **What it is:** an application virtual machine (VM) that talks to Azure SQL Database without the database password ever appearing in code, on disk, or in a config file. There's no public website. The VM is the app, not a page for visitors.
 - **What's automated:** one Python command builds the vault, the database, and the VM. It talks to Azure's API, not Secure Shell (SSH). A second command checks the result. A third deletes it and frees the vault name.
 - **Two identities:** the operator (your laptop) is Key Vault Administrator and may write the secret. The VM is Key Vault Secrets User and may only read it. SSH on port 22 is an optional admin door after the build, not how resources are created.
-- **Why it's managed:** Azure SQL Database is Platform as a Service (PaaS). Microsoft patches, backs up, and runs the database engine. There is no database VM to maintain.
+- **Why it's managed:** Azure SQL Database is Platform as a Service (PaaS). Microsoft patches, backs up, and runs the database engine. There's no database VM to maintain.
 - **Result:** checks 1 through 7 passed. Evidence is under [Success criteria](#success-criteria).
 
 Part of [Cloud Projects](https://github.com/zsociety47/cloud-projects). Technical details and lessons learned are in [Technical findings](#technical-findings) at the bottom.
@@ -41,9 +41,9 @@ mkdir -p keys
 ssh-keygen -t ed25519 -f keys/id_ed25519 -N ""
 ```
 
-Find your current public Internet Protocol (IP) address. Open `https://api.ipify.org` in a browser. You will use `<that address>/32` as the only source allowed to SSH to the VM. Do not commit that address.
+Find your current public Internet Protocol (IP) address. Open `https://api.ipify.org` in a browser. You will use `<that address>/32` as the only source allowed to SSH to the VM. Don't commit that address.
 
-Create the SQL admin password in your password manager: at least 16 characters, with uppercase, lowercase, a number, and a symbol. You paste it twice, into Key Vault in step 4 and into the SQL server in step 5. After that, nothing in this project needs you to type it again. Do not save it in a file in this folder.
+Create the SQL admin password in your password manager: at least 16 characters, with uppercase, lowercase, a number, and a symbol. You paste it twice, into Key Vault in step 4 and into the SQL server in step 5. After that, nothing in this project needs you to type it again. Don't save it in a file in this folder.
 
 ### Step 1: Create a resource group
 
@@ -61,8 +61,8 @@ Create the SQL admin password in your password manager: at least 16 characters, 
 *Automated by `python -m src.deploy`.*
 
 1. Search for **Key vaults** and select **+ Create**.
-2. **Basics:** resource group `rg-paas-poc-zeon01`. **Name:** `kv-paas-zeon01`. **Region:** East US. **Pricing tier:** Standard. Premium adds a hardware security module (HSM), which this project does not need.
-3. **Recovery options:** soft-delete is on and cannot be turned off. **Days to retain deleted vaults:** 90. **Purge protection:** Disable. With purge protection on, the vault name stays reserved for the full 90 days after cleanup.
+2. **Basics:** resource group `rg-paas-poc-zeon01`. **Name:** `kv-paas-zeon01`. **Region:** East US. **Pricing tier:** Standard. Premium adds a hardware security module (HSM), which this project doesn't need.
+3. **Recovery options:** soft-delete is on and can't be turned off. **Days to retain deleted vaults:** 90. **Purge protection:** Disable. With purge protection on, the vault name stays reserved for the full 90 days after cleanup.
 4. **Access configuration:** **Permission model:** Azure role-based access control (RBAC). Leave the three **Resource access** boxes unchecked. They let VM deployment, template deployment, and disk encryption read the vault, and this project uses none of them.
 5. **Networking:** **Enable public access** checked, **All networks**. No private endpoint. The portal warns that every public network can reach the vault. RBAC still decides who can read a secret, and step 10 is the only grant the VM gets.
 6. Select **Review + create**, then **Create**.
@@ -91,7 +91,7 @@ With RBAC, nobody can read or write secrets until a role is assigned, including 
 2. **Upload options:** Manual. **Name:** `SqlAdminPassword`. **Secret value:** the password you created. Leave content type, activation date, and expiration date empty. **Enabled:** Yes.
 3. Select **Create**.
 
-The secret list shows `SqlAdminPassword` as Enabled. Opening a version shows its details. Key Vault does not show the value unless you choose **Show Secret Value**, and you do not need to.
+The secret list shows `SqlAdminPassword` as Enabled. Opening a version shows its details. Key Vault doesn't show the value unless you choose **Show Secret Value**, and you don't need to.
 
 ![SqlAdminPassword listed and enabled](docs/images/step-04-secret.png)
 
@@ -101,17 +101,17 @@ The secret list shows `SqlAdminPassword` as Enabled. Opening a version shows its
 
 In Azure, a SQL server is a logical container: the admin login, the firewall, and the region. The database lives inside it. The portal creates both in one form.
 
-1. Search for **SQL databases** and select it. Do not select **SQL servers**.
+1. Search for **SQL databases** and select it. Don't select **SQL servers**.
 2. Open the arrow on **+ Create** and choose **SQL database**, not the free offer.
 3. If a green banner says the free offer is applied, select **Remove offer** or **Advanced configuration**, and wait until the banner is gone. While it is applied, the Database Transaction Unit (DTU) tiers are hidden and the form only offers General Purpose serverless.
 4. **Basics:**
    - **Resource group:** `rg-paas-poc-zeon01`.
-   - **Database name:** clear any generated name and enter `sqldb-app`. A database cannot be renamed after it is created.
-   - **Server:** **Create new**. **Server name:** `sql-paas-zeon01`. **Location:** Central US, not East US. This subscription cannot create a SQL server in East US, and Central US is the nearest region that accepts one. See [Technical findings](#technical-findings). **Authentication method:** Use SQL authentication. **Server admin login:** `sqladmin`. **Password:** the same password you stored in step 4. Select **OK**.
+   - **Database name:** clear any generated name and enter `sqldb-app`. A database can't be renamed after it is created.
+   - **Server:** **Create new**. **Server name:** `sql-paas-zeon01`. **Location:** Central US, not East US. This subscription can't create a SQL server in East US, and Central US is the nearest region that accepts one. See [Technical findings](#technical-findings). **Authentication method:** Use SQL authentication. **Server admin login:** `sqladmin`. **Password:** the same password you stored in step 4. Select **OK**.
    - **Want to use SQL elastic pool?** No.
    - **Workload environment:** Development. Production points the form at a much more expensive tier.
    - **Compute + storage:** **Configure database**. Choose **DTU-based**, then **Basic** (5 DTUs, 2 GB). Select **Apply**. The cost summary should be about $5 a month.
-   - **Backup storage redundancy:** Locally-redundant backup storage. That is locally redundant storage (LRS), copied within one datacenter.
+   - **Backup storage redundancy:** Locally-redundant backup storage. That's locally redundant storage (LRS), copied within one datacenter.
 5. **Networking:**
    - **Connectivity method:** Public endpoint.
    - **Allow Azure services and resources to access this server:** No. Yes would open the server to every address inside Azure, not only this project's VM.
@@ -137,7 +137,7 @@ The VM reaches SQL from this address, so the firewall rule needs it before the V
 3. Create it, then copy its address from **Overview**.
 4. Open `sql-paas-zeon01`, then **Security** > **Networking**. Under **Firewall rules**, select **+ Add a firewall rule**. **Rule name:** `AllowWebVm`. Start and end IP: the `pip-web-01` address. Leave **Allow Azure services and resources to access this server** unchecked. Select **Save**. Open the SQL *server*, not the database. The database page has no firewall settings of its own.
 
-The addresses in this picture are covered on purpose.
+I covered the addresses in this screenshot on purpose.
 
 ![SQL firewall with two single-address rules and Azure services off](docs/images/step-06-sql-firewall.png)
 
@@ -157,7 +157,7 @@ A network security group (NSG) is the subnet firewall. Create it now and attach 
 
 TCP is the Transmission Control Protocol. No other inbound port is open. This project has no web page. The VM only makes outbound calls, to Key Vault on port 443 and to SQL on port 1433.
 
-The source address in this picture is covered on purpose.
+I covered the source address in this screenshot on purpose.
 
 ![nsg-web with one SSH rule](docs/images/step-07-nsg-web.png)
 
@@ -171,7 +171,7 @@ The source address in this picture is covered on purpose.
 4. Select **Review + create**, then **Create**.
 5. Open **Settings** > **Subnets** and check that the **Security group** column shows `nsg-web`. If you re-added the subnet while fixing the address space, the NSG choice can be lost. Select `snet-web`, set the NSG, and save.
 
-The address range does not overlap the two-tier project's `10.0.0.0/16`, so both can exist at once. Outbound traffic leaves through `pip-web-01`, which is why the SQL firewall in step 6 allows that address.
+The address range doesn't overlap the two-tier project's `10.0.0.0/16`, so both can exist at once. Outbound traffic leaves through `pip-web-01`, which is why the SQL firewall in step 6 allows that address.
 
 ![vnet-paas-poc with snet-web and nsg-web](docs/images/step-08-vnet.png)
 
@@ -197,14 +197,14 @@ A system-assigned managed identity is an identity in Microsoft Entra ID that bel
 *Automated by `python -m src.deploy`.*
 
 1. Open `kv-paas-zeon01` > **Access control (IAM)** > **+ Add** > **Add role assignment**.
-2. **Role:** Key Vault Secrets User. It can read secret values. It cannot create, change, or delete them.
+2. **Role:** Key Vault Secrets User. It can read secret values. It can't create, change, or delete them.
 3. **Members:** **Assign access to** Managed identity. **+ Select members**, **Managed identity:** Virtual machine, select `vm-web-01`, then **Select**.
 4. The **Conditions** tab is skipped for a managed identity. **Review + assign**, twice.
 5. **Role assignments** now lists `vm-web-01`, type Managed identity, with Key Vault Secrets User at scope "This resource".
 
-If `vm-web-01` is not in the member list, check step 9 for the object ID and wait a minute.
+If `vm-web-01` isn't in the member list, check step 9 for the object ID and wait a minute.
 
-The identity's ID under the VM name is covered in this picture.
+I covered the identity's ID under the VM name in this screenshot.
 
 ![vm-web-01 assigned Key Vault Secrets User](docs/images/step-10-vm-role.png)
 
@@ -217,7 +217,7 @@ The identity's ID under the VM name is covered in this picture.
 3. The script installs `sqlcmd`. It asks the Azure Instance Metadata Service (IMDS) at `169.254.169.254` for a Key Vault token, then reads `SqlAdminPassword` with that token. It connects to `sql-paas-zeon01.database.windows.net` as `sqladmin` and runs `SELECT 1`.
 4. Installing `sqlcmd` takes a few minutes, and the output appears only when the script finishes. The standard output ends with `(1 rows affected)` and `sql-connected`. It does not contain the password. A `[stderr]` section below it lists Ubuntu's package-restart messages, such as "Running kernel seems to be up-to-date". Those are not errors.
 
-A 403 on the secret usually means the role from step 10 has not taken effect yet. The script retries for about three minutes.
+A 403 on the secret usually means the role from step 10 hasn't taken effect yet. The script retries for about three minutes.
 
 ![Run command output ending in sql-connected](docs/images/step-11-sql-connected.png)
 
@@ -234,7 +234,7 @@ curl -sS -o /dev/null -w '%{http_code}\n' -X PUT \
 unset token
 ```
 
-The output is `403`. Key Vault Secrets User can read secret values but cannot create, change, or delete them. A `200` means the VM has a broader role than step 10 gives it, and **Secrets** now lists `WriteTest`.
+The output is `403`. Key Vault Secrets User can read secret values but can't create, change, or delete them. A `200` means the VM has a broader role than step 10 gives it, and **Secrets** now lists `WriteTest`.
 
 The output below is from the write test script above. Its only standard output is the HTTP status code.
 
@@ -258,7 +258,7 @@ This database does not publish DTU percentage. Its metric list has CPU percentag
 *Automated by `python -m src.teardown`, which asks you to type the resource group name before it deletes anything.*
 
 1. Open `rg-paas-poc-zeon01` and select **Delete resource group**. Type the name to confirm. That removes the VM, its disk and network interface, the public IP, the NSG, the virtual network, the SQL server and database, and the Key Vault.
-2. Search for **Key vaults** and select **Manage deleted vaults**. The main Key vaults list only shows live vaults, so it looks empty after the group delete even while the name is still reserved. Select `kv-paas-zeon01`, then **Purge**. Until you purge it, the name stays reserved for 90 days and the next deploy cannot use it.
+2. Search for **Key vaults** and select **Manage deleted vaults**. The main Key vaults list only shows live vaults, so it looks empty after the group delete even while the name is still reserved. Select `kv-paas-zeon01`, then **Purge**. Until you purge it, the name stays reserved for 90 days and the next deploy can't use it.
 3. Confirm the resource group is gone and **Manage deleted vaults** says you have no deleted vaults in this subscription.
 
 ![Resource group gone and the vault purged](docs/images/step-13-teardown.png)
@@ -269,11 +269,11 @@ This database does not publish DTU percentage. Its metric list has CPU percentag
 
 ### Run this as yourself
 
-The names committed in this repository are this proof of concept. Leave the published files as they are; change the constants in **your** copy before you deploy. The sequence is the same as the [naming standard](https://github.com/zsociety47/cloud-projects/blob/main/standards/NAMING-STANDARD.md): type, project, environment, then **your** owner word and number (`rg-paas-poc-zeon01` becomes `rg-paas-poc-ada01`). Key Vault and SQL server names must be unique across Azure.
+The names in this repository are the ones I used for my own proof of concept, so leave the published files as they are and change the constants in your own copy before you deploy. The names follow the [naming standard](https://github.com/zsociety47/cloud-projects/blob/main/standards/NAMING-STANDARD.md): type, project, environment, then your short name and a number (`rg-paas-poc-zeon01` becomes `rg-paas-poc-ada01`). Key Vault and SQL server names have to be unique across all of Azure, which is why your short name goes in them.
 
 | Open this | Do this |
 |---|---|
-| [`src/lib/config.py`](src/lib/config.py) | Change `RESOURCE_GROUP`, `SQL_SERVER`, `KEY_VAULT`, and `TAGS["owner"]`. Put your owner word in the three names that currently end in `zeon01`. Leave `vnet-paas-poc`, `sqldb-app`, and the virtual machine names. |
+| [`src/lib/config.py`](src/lib/config.py) | Change `RESOURCE_GROUP`, `SQL_SERVER`, `KEY_VAULT`, and `TAGS["owner"]`. Use your short name and a number in the three names that currently end in `zeon01`. Leave `vnet-paas-poc`, `sqldb-app`, and the virtual machine names. |
 | [`src/guest/web-setup.sh`](src/guest/web-setup.sh) | Change `VAULT_URL` and `SQL_FQDN` so they match the Key Vault and SQL server names you just set. The comment at the top of that file says the same thing. |
 
 You need Python 3.11 or newer, an Azure subscription, and a current `az login`. The scripts sign in with `DefaultAzureCredential` from the Azure software development kit (SDK). No password is stored in the repository.
@@ -289,11 +289,11 @@ python -m src.deploy
 python -m src.verify
 ```
 
-`--plan` prints the resource names and exits. It does not call Azure.
+`--plan` prints the resource names and exits. It doesn't call Azure.
 
-`python -m src.deploy` covers the SSH key and steps 1 through 11. It generates the database password in memory, writes it to Key Vault and to the SQL server, and does not print it. Running it again sets a new password in both places, so they stay in agreement.
+`python -m src.deploy` covers the SSH key and steps 1 through 11. It generates the database password in memory, writes it to Key Vault and to the SQL server, and doesn't print it. Running it again sets a new password in both places, so they stay in agreement.
 
-The `SSH:` line after this block holds the web VM's public address. It is left out of the picture on purpose.
+The `SSH:` line below this block shows the web VM's public address, so I cropped it out of the screenshot.
 
 ![Deploy finished](docs/images/automated-deploy.png)
 
@@ -301,7 +301,7 @@ The `SSH:` line after this block holds the web VM's public address. It is left o
 
 ![Verify pass table, check 7 not run](docs/images/automated-verify.png)
 
-When you are finished:
+When you're finished:
 
 ```bash
 python -m src.teardown
@@ -318,7 +318,7 @@ Sign in with the Azure command-line interface (CLI) in a browser before the Pyth
 az login
 ```
 
-If Microsoft Entra ID asks for multi-factor authentication (MFA), approve it in the browser. Do not add `--use-device-code`. That flow is often blocked when the computer is not registered with Entra ID.
+If Microsoft Entra ID asks for multi-factor authentication (MFA), approve it in the browser. Don't add `--use-device-code`. That flow is often blocked when the computer isn't registered with Entra ID.
 
 ### Prove it in the portal
 
@@ -329,12 +329,12 @@ If Microsoft Entra ID asks for multi-factor authentication (MFA), approve it in 
 | 3. The VM can only read secrets | `kv-paas-zeon01` → **Access control (IAM)** → **Role assignments** | `vm-web-01` has Key Vault Secrets User. **Properties** shows purge protection off |
 | 4. The SQL firewall allows two addresses | `sql-paas-zeon01` → **Security** → **Networking** | Two single-address rules. Azure services access is off |
 | 5. The database is being monitored | `sqldb-app` → **Metrics** → Successful Connections, Sum | A point for each window with a login from the VM |
-| 6. The VM is blocked from writing a secret | `vm-web-01` → **Run command** → **RunShellScript** with the write test from step 11 | The output is `403`, and **Secrets** does not list `WriteTest` |
+| 6. The VM is blocked from writing a secret | `vm-web-01` → **Run command** → **RunShellScript** with the write test from step 11 | The output is `403`, and **Secrets** doesn't list `WriteTest` |
 | 7. Teardown removed everything | **Resource groups**, then **Key vaults** → **Manage deleted vaults** | The group and the vault are both gone |
 
 ### Prove it from the command line
 
-A passing `python -m src.verify` table is:
+A passing `python -m src.verify` table looks like this:
 
 | # | Result |
 |---|---|
@@ -391,14 +391,14 @@ flowchart TD
 
 **How to read this diagram**
 
-This picture is **run time**, after the build exists. It is not the deploy.
+This picture is **run time**, after the build exists. It isn't the deploy.
 
-- **Build (not drawn):** `python -m src.deploy` uses the Azure API from the laptop. HTTPS to Azure Resource Manager. It does not use SSH. It creates the vault and SQL first, then the public IP, NSG, VNet, and VM.
-- **Top box, operator path:** optional admin access later. SSH lands on `pip-web-01`, then `nsg-web` allows port 22 from the operator address only. There is no port 80. Skip this path and the app still works. Verify uses Run Command, not SSH.
-- **Lower box, the proof:** the VM asks Instance Metadata Service (IMDS) for a token, reads `SqlAdminPassword` over HTTPS, opens SQL over Tabular Data Stream (TDS) inside Transport Layer Security (TLS), and is refused with 403 if it tries to write a secret. SQL and Key Vault are not in the VNet.
+- **Build (not drawn):** `python -m src.deploy` talks to Azure from the laptop over HTTPS, through Azure Resource Manager. It doesn't use SSH. It creates the vault and SQL first, then the public IP, NSG, VNet, and VM.
+- **Top box, operator path:** optional admin access later. SSH lands on `pip-web-01`, then `nsg-web` allows port 22 from the operator address only. There's no port 80. Skip this path and the app still works. Verify uses Run Command, not SSH.
+- **Lower box, the proof:** the VM asks Instance Metadata Service (IMDS) for a token, reads `SqlAdminPassword` over HTTPS, opens SQL over Tabular Data Stream (TDS) inside Transport Layer Security (TLS), and is refused with 403 if it tries to write a secret. SQL and Key Vault aren't in the VNet.
 - **Blue:** Azure resources. **Green:** identity, the vault, and the NSG. **Gray:** the laptop.
 
-*The password never leaves Key Vault into this repository or onto the VM's disk. SQL is in Central US because this subscription cannot create a server in East US.*
+*The password never leaves Key Vault into this repository or onto the VM's disk. SQL is in Central US because this subscription can't create a server in East US.*
 
 *Diagram follows the [shared diagram standard](https://github.com/zsociety47/cloud-projects/blob/main/standards/DIAGRAM-STANDARD.md).*
 
@@ -417,7 +417,7 @@ A VM with a system-assigned managed identity can read a database password from K
 | 3 | The vault uses RBAC, purge protection is off, and the VM has Key Vault Secrets User | Verify reads the vault and its role assignments | ✅ [verify](docs/images/automated-verify.png) |
 | 4 | The SQL firewall allows only the operator address and the web VM address | Verify lists the firewall rules | ✅ [verify](docs/images/automated-verify.png) |
 | 5 | Azure Monitor records the VM's successful login | Verify reads Successful Connections for the last hour | ✅ [verify](docs/images/automated-verify.png) |
-| 6 | The VM cannot write a secret: Key Vault returns 403 | Verify runs a write test on `vm-web-01` | ✅ [verify](docs/images/automated-verify.png) |
+| 6 | The VM can't write a secret: Key Vault returns 403 | Verify runs a write test on `vm-web-01` | ✅ [verify](docs/images/automated-verify.png) |
 | 7 | Teardown deletes the group and purges the vault | `python -m src.teardown`, then `python -m src.verify --after-teardown` | ✅ [teardown](docs/images/automated-teardown.png) |
 
 ## What's in this repository
@@ -444,7 +444,7 @@ A VM with a system-assigned managed identity can read a database password from K
 - **The SQL firewall is two addresses.** Your address at deploy time, and `pip-web-01`. "Allow Azure services" stays off, because that setting admits any address inside Azure.
 - **TLS 1.2 minimum on SQL.** `sqlcmd` 18 encrypts the connection by default.
 - **SSH reaches the VM only from your address.** No other inbound port is open. The private key stays in `keys/` on your machine.
-- **Azure error text is not printed** when a request carried the password. The retry helper reports the HTTP status only.
+- **Azure error text isn't printed** when a request carried the password. The retry helper reports the HTTP status only.
 - **Purge protection is off on purpose.** A proof of concept has to be able to free its vault name at teardown. A production vault holding encryption keys would turn it on.
 
 ## Cost
@@ -460,13 +460,13 @@ East US pay-as-you-go list prices, approximate, before tax:
 | Key Vault Standard | billed per 10,000 operations. This build uses a handful |
 | Microsoft Defender for SQL | off. About $15 per server per month if enabled |
 
-A few hours for a recording is about a dollar. Left running for a month, the VM is about $44, and the database is about $5. Delete the resource group and purge the vault when you are done. Prices were checked in October 2026 and will move. Standard_B1s would be cheaper, and this subscription cannot create that size in East US.
+A few hours for a recording is about a dollar. Left running for a month, the VM is about $44, and the database is about $5. Delete the resource group and purge the vault when you're done. Prices were checked in October 2026 and will move. Standard_B1s would be cheaper, and this subscription can't create that size in East US.
 
 ## Going further
 
 - Switch SQL to Microsoft Entra ID authentication and create a database user for the VM's managed identity. That removes the SQL password entirely, and Key Vault would hold only non-database secrets.
 - Put Key Vault and SQL behind private endpoints and turn public access off, so traffic stays on Azure's network.
-- Replace SSH with Azure Bastion, so port 22 is not open even to one address.
+- Replace SSH with Azure Bastion, so port 22 isn't open even to one address.
 - Rotate `SqlAdminPassword` on a schedule with an expiration date and a rotation job.
 - Describe the build in Bicep or Terraform once the design stops changing.
 
@@ -478,7 +478,7 @@ A few hours for a recording is about a dollar. Left running for a month, the VM 
 
 - **`azure-monitor-query` 2.0 no longer reads metrics.** Version 2.0.0 exports only the logs client. Metrics moved to a separate package. Verify reads metrics through `azure-mgmt-monitor` 7.0.0, the Azure Resource Manager metrics API, which also matches what the portal chart shows.
 - **This Basic database publishes no DTU metric.** Its metric list is CPU percentage, Data IO percentage, successful and failed connections, Blocked by Firewall, Availability, replication lag, and ledger digest uploads. Asking for `dtu_consumption_percent` returns "Failed to find metric configuration". Verify check 5 reads `connection_successful` instead, which records the VM's login itself.
-- **Deleting the resource group does not free the Key Vault name.** Soft-delete keeps a deleted vault, and its name, for the retention period. Teardown purges it after the group delete, and `verify --after-teardown` fails if the name is still reserved.
+- **Deleting the resource group doesn't free the Key Vault name.** Soft-delete keeps a deleted vault, and its name, for the retention period. Teardown purges it after the group delete, and `verify --after-teardown` fails if the name is still reserved.
 - **"Allow Azure services" is a `0.0.0.0` firewall rule.** It admits traffic from any Azure address, including other customers' resources. This build adds two single-address rules instead, and verify fails if a `0.0.0.0` rule appears.
 - **This subscription cannot create a SQL server in East US.** The portal said "Your subscription does not have access to create a server in the selected region." The SQL capabilities API returned provisioning restricted for East US, East US 2, North Central US, South Central US, and West US 2. Central US was the nearest region that accepted a server. The SQL server and database go there; everything else stays in East US.
 - **Azure VM Run Command uses `/bin/sh` unless the script names a shell.** On Ubuntu that is `dash`, which rejects `set -o pipefail`. Verify's first run then printed `FAIL  unknown` for the SQL check and the write test. Both embedded scripts now start with `#!/bin/bash`. The guest file already had that line, which is why the portal Run command in step 11 worked.
