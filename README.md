@@ -433,7 +433,8 @@ A VM with a system-assigned managed identity can read a database password from K
 │   │   └── web-setup.sh      Runs on the VM: reads the secret, queries SQL. No password inside
 │   └── lib/                  Names, Azure clients, SSH key, public address, retries, logging
 └── docs/
-    └── images/               Screenshots for the steps above
+    ├── images/               Screenshots and the Loom thumbnail GIF
+    └── linkedin/             Four LinkedIn drafts; Monday is the walkthrough video
 ```
 
 ## Security choices
